@@ -1,0 +1,123 @@
+@page "/"
+@using Calculadora.Web.Components
+@using Calculadora.Web.Models
+@using Calculadora.Web.Services
+@inject ICalculadoraApi Api
+
+<PageTitle>Calculadora</PageTitle>
+
+<main class="calculadora">
+    <section class="painel" aria-label="Calculadora">
+        <div class="visor" aria-live="polite">
+            <div class="expressao">@Teclado.Expressao&nbsp;</div>
+            <div class="valor">@Teclado.Display</div>
+        </div>
+
+        @if (_erro is not null)
+        {
+            <div class="erro" role="alert">@_erro</div>
+        }
+
+        <div class="teclado">
+            <Tecla Texto="C" AriaLabel="Limpar" Classe="controle" Desabilitada="_ocupado" OnClick="Teclado.Limpar" />
+            <Tecla Texto="±" AriaLabel="Inverter sinal" Classe="controle" Desabilitada="_ocupado" OnClick="Teclado.InverterSinal" />
+            <Tecla Texto="⌫" AriaLabel="Apagar" Classe="controle" Desabilitada="_ocupado" OnClick="Teclado.Apagar" />
+            <Tecla Texto="÷" AriaLabel="Dividir" Classe="operacao" Desabilitada="_ocupado" OnClick="() => PressionarOperacaoAsync(Operacao.Divisao)" />
+
+            <Tecla Texto="7" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(7)" />
+            <Tecla Texto="8" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(8)" />
+            <Tecla Texto="9" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(9)" />
+            <Tecla Texto="×" AriaLabel="Multiplicar" Classe="operacao" Desabilitada="_ocupado" OnClick="() => PressionarOperacaoAsync(Operacao.Multiplicacao)" />
+
+            <Tecla Texto="4" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(4)" />
+            <Tecla Texto="5" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(5)" />
+            <Tecla Texto="6" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(6)" />
+            <Tecla Texto="−" AriaLabel="Subtrair" Classe="operacao" Desabilitada="_ocupado" OnClick="() => PressionarOperacaoAsync(Operacao.Subtracao)" />
+
+            <Tecla Texto="1" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(1)" />
+            <Tecla Texto="2" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(2)" />
+            <Tecla Texto="3" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(3)" />
+            <Tecla Texto="+" AriaLabel="Somar" Classe="operacao" Desabilitada="_ocupado" OnClick="() => PressionarOperacaoAsync(Operacao.Soma)" />
+
+            <Tecla Texto="0" Classe="larga" Desabilitada="_ocupado" OnClick="() => Teclado.Digitar(0)" />
+            <Tecla Texto="," AriaLabel="Vírgula" Desabilitada="_ocupado" OnClick="Teclado.Virgula" />
+            <Tecla Texto="=" AriaLabel="Igual" Classe="operacao" Desabilitada="_ocupado" OnClick="PressionarIgualAsync" />
+        </div>
+    </section>
+
+    <section class="historico" aria-label="Histórico">
+        <h2>Histórico</h2>
+
+        @if (_historico.Count == 0)
+        {
+            <p class="vazio">Nenhum cálculo ainda.</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var item in _historico)
+                {
+                    <li>
+                        <span>@Formatar(item.OperandoA) @item.Operacao.Simbolo() @Formatar(item.OperandoB)</span>
+                        <strong>= @Formatar(item.Resultado)</strong>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</main>
+
+@code {
+    private readonly TecladoCalculadora Teclado = new();
+    private IReadOnlyList<CalculoResponse> _historico = [];
+    private string? _erro;
+    private bool _ocupado;
+
+    protected override async Task OnInitializedAsync() => await CarregarHistoricoAsync();
+
+    private Task PressionarOperacaoAsync(Operacao operacao) =>
+        ResolverAsync(() => Teclado.PressionarOperacao(operacao));
+
+    private Task PressionarIgualAsync() => ResolverAsync(Teclado.PressionarIgual);
+
+    private async Task ResolverAsync(Func<CalcularRequest?> acaoDoTeclado)
+    {
+        _erro = null;
+        var requisicao = acaoDoTeclado();
+
+        if (requisicao is null)
+            return;
+
+        _ocupado = true;
+        try
+        {
+            var resposta = await Api.CalcularAsync(requisicao);
+            Teclado.AplicarResultado(resposta.Resultado);
+            await CarregarHistoricoAsync();
+        }
+        catch (ApiException ex)
+        {
+            Teclado.AplicarErro();
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _ocupado = false;
+        }
+    }
+
+    private async Task CarregarHistoricoAsync()
+    {
+        try
+        {
+            _historico = await Api.ListarHistoricoAsync();
+        }
+        catch (ApiException ex)
+        {
+            _erro ??= ex.Message;
+        }
+    }
+
+    private static string Formatar(decimal valor) =>
+        valor.ToString(System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+}

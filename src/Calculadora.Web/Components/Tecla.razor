@@ -1,0 +1,9 @@
+<button type="button" class="tecla @Classe" @onclick="OnClick" disabled="@Desabilitada" aria-label="@(AriaLabel ?? Texto)">@Texto</button>
+
+@code {
+    [Parameter, EditorRequired] public string Texto { get; set; } = string.Empty;
+    [Parameter] public string? AriaLabel { get; set; }
+    [Parameter] public string? Classe { get; set; }
+    [Parameter] public bool Desabilitada { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}

@@ -1,0 +1,39 @@
+.calculadora {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) minmax(220px, 300px);
+    gap: 1.5rem;
+    justify-content: center;
+    align-items: start;
+    padding: 2rem 1rem;
+}
+
+.painel, .historico {
+    background: var(--painel-bg);
+    border-radius: 20px;
+    padding: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+
+.visor { text-align: right; padding: .5rem .75rem 1rem; overflow: hidden; }
+.expressao { color: var(--texto-suave); min-height: 1.4rem; }
+.valor { font-size: 2.4rem; font-weight: 600; word-break: break-all; }
+
+.erro {
+    background: #5c1f24;
+    color: #ffd7da;
+    border-radius: 10px;
+    padding: .6rem .8rem;
+    margin-bottom: .75rem;
+    font-size: .95rem;
+}
+
+.teclado { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; }
+
+.historico h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
+.historico ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.historico li { display: flex; justify-content: space-between; gap: .75rem; padding: .5rem .7rem; background: var(--tecla-bg); border-radius: 10px; }
+.vazio { color: var(--texto-suave); margin: 0; }
+
+@media (max-width: 720px) {
+    .calculadora { grid-template-columns: 1fr; }
+}

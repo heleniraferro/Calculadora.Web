@@ -1,0 +1,19 @@
+.tecla {
+    font-size: 1.4rem;
+    padding: 1rem 0;
+    border: 0;
+    border-radius: 12px;
+    background: var(--tecla-bg);
+    color: var(--texto);
+    cursor: pointer;
+    transition: filter .1s;
+}
+
+.tecla:hover:not(:disabled) { filter: brightness(1.12); }
+.tecla:active:not(:disabled) { filter: brightness(.9); }
+.tecla:disabled { opacity: .5; cursor: progress; }
+.tecla:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+
+.tecla.operacao { background: var(--destaque); color: #fff; }
+.tecla.controle { background: var(--controle-bg); }
+.tecla.larga { grid-column: span 2; }
